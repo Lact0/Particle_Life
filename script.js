@@ -2,6 +2,7 @@ window.onresize = changeWindow;
 const balls = [];
 let rules = [];
 let maxForce = 1;
+let tree;
 
 function load() {
   canvas = document.querySelector('.canvas');
@@ -24,6 +25,7 @@ function load() {
 
 function runFrame() {
   ctx.clearRect(0, 0, width, height);
+  tree = new Quadtree(0, 0, width, height);
   for(let i = 0; i < balls.length; i++) {
     const ball = balls[i];
     for(let j = 0; j < balls.length; j++) {
@@ -34,8 +36,10 @@ function runFrame() {
       const dist = ball.pos.distTo(otherBall.pos);
       const rule = rules[otherBall.type][ball.type];
     }
+    tree.pass(ball);
   }
   //DO ALL DRAWING HERE
+  tree.draw();
   for(let ball of balls) {
     ball.draw();
   }

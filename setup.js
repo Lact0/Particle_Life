@@ -164,3 +164,74 @@ class Particle {
     ctx.stroke();
   }
 }
+
+class Box {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+
+  draw() {
+    ctx.strokeStyle = 'white';
+    ctx.strokeRect(this.x, this.y, this.w, this.h);
+  }
+
+  contains(point) {
+    return point.x == min(max(this.x, point.x), this.x + this.w) && point.y == min(max(this.y, point.y), this.y + this.h);
+  }
+
+  overlaps(box) {
+    return (max(box.x, this.x) <= min(box.x + box.w, this.x + this.w)) && (max(box.y, this.y) <= min(box.y + box.h, this.y + this.h));
+  }
+}
+
+class Quadtree {
+  constructor(x, y, w, h) {
+    this.box = new Box(x, y, w, h);
+    this.store = [];
+    this.leaf = true;
+    this.children = [];
+  }
+
+  pass(obj) {
+    if(!this.box.contains(obj.pos)) {
+      return false;
+    }
+    if(this.leaf) {
+      this.store.push(obj);
+      if(this.store.length > 1) {
+        this.split();
+      }
+    } else {
+      this.passToLeaves(obj);
+    }
+    return true;
+  }
+
+  passToLeaves(obj) {
+    for(let tree of this.children) {
+      tree.pass(obj);
+    }
+  }
+
+  split() {
+    this.leaf = false;
+    this.children.push(new Quadtree(this.box.x, this.box.y, this.box.w / 2, this.box.h / 2));
+    this.children.push(new Quadtree(this.box.x + this.box.w / 2, this.box.y, this.box.w / 2, this.box.h / 2));
+    this.children.push(new Quadtree(this.box.x, this.box.y + this.box.h / 2, this.box.w / 2, this.box.h / 2));
+    this.children.push(new Quadtree(this.box.x + this.box.w / 2, this.box.y + this.box.h / 2, this.box.w / 2, this.box.h / 2));
+    for(let obj of this.store) {
+      this.passToLeaves(obj);
+    }
+    this.store = [];
+  }
+
+  draw() {
+    this.box.draw();
+    for(let tree of this.children) {
+      tree.draw();
+    }
+  }
+}
