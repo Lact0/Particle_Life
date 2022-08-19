@@ -3,6 +3,7 @@ let width = window.innerWidth;
 let height = window.innerHeight;
 let canvas;
 let ctx;
+const colors = ['red', 'green', 'blue'];
 
 //Useful Functions
 function max(n1, n2) {
@@ -143,5 +144,23 @@ class Vector {
 
   distTo(vector) {
     return Math.sqrt(Math.pow(this.x - vector.x, 2) + Math.pow(this.y - vector.y, 2));
+  }
+}
+
+class Particle {
+  constructor(params = {}) {
+    const x = params.x || rand(0, width - 1);
+    const y = params.y || rand(0, height - 1);
+    this.pos = new Vector(x, y);
+    this.r = params.r || 5;
+    this.type = params.type || rand(0, colors.length - 1);
+    this.vel = new Vector();
+  }
+
+  draw() {
+    ctx.strokeStyle = colors[this.type];
+    ctx.beginPath();
+    ctx.arc(this.pos.x, this.pos.y, this.r, 0, Math.PI * 2);
+    ctx.stroke();
   }
 }
