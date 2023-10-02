@@ -8,15 +8,18 @@ using namespace std;
 class QuadTree : public Box {
     public:
         bool isLeaf;
+        bool hasPoint;
         Vector point;
         QuadTree* children[4];
 
         QuadTree(Vector p, Vector d);
 
-        void addPoint(Vector point);
-        vector<Vector> getClosePoints(Vector point, double r);
+        void addPoint(Vector p);
+        void drawTree(SDL_Renderer *renderer);
+        vector<Vector> getClosePoints(Vector p, double r);
     
     private:
-        vector<Vector> getClosePoints(Vector point, Box b);
+        void split();
+        vector<Vector> getClosePoints(Vector p, Box b);
 
 };

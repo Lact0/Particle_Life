@@ -10,5 +10,6 @@ class Box {
         Box(Vector p, Vector d);
 
         bool containsPoint(Vector p);
+        bool overlaps(Box b);
         void draw(SDL_Renderer *renderer);
 };

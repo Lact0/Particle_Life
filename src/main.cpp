@@ -3,6 +3,7 @@
 #include "vectorMath.h"
 #include "quadTree.h"
 #include <cmath>
+#include <cstdlib>
 
 using namespace std;
 
@@ -41,12 +42,22 @@ int main(int argv, char** args) {
         return 1;
     }
 
+    srand((unsigned) time(NULL));
+
     SDL_Event e;
     bool running = true;
     int frameStart, frameTime;
 
-    Box b(Vector(0, 0), Vector(50, 50));
-    Vector vel(1, 1);
+    QuadTree tree(Vector(0, 0), Vector(windowWidth, windowHeight));
+    vector<Vector> points;
+
+    for(int i = 0; i < 10000; i++) {
+        Vector newPoint(rand() % windowWidth, rand() % windowHeight);
+        points.push_back(newPoint);
+        tree.addPoint(newPoint);
+    }
+
+    bool showTree = false;
 
     while(running) {
         frameStart = SDL_GetTicks();
@@ -57,11 +68,21 @@ int main(int argv, char** args) {
         mousePos = mousePos.div(windowScale);
 
         while(SDL_PollEvent(&e) != 0) {
-            if(e.type == SDL_QUIT) {
-                running = false;
-            }
-            if(e.type == SDL_MOUSEBUTTONDOWN) {
-                cout << mousePos.x << " " << mousePos.y << " ";
+            switch(e.type) {
+                case SDL_QUIT:
+                    running = false;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    tree.addPoint(mousePos);
+                    points.push_back(mousePos);
+                    break;
+                case SDL_KEYDOWN:
+                    switch(e.key.keysym.sym) {
+                        case SDLK_SPACE:
+                            showTree = !showTree;
+                            break;
+                    }
+                    break;
             }
         }
         
@@ -69,22 +90,20 @@ int main(int argv, char** args) {
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        b.draw(renderer);
-
-        b.pos = b.pos.add(vel);
-
-        if(b.pos.x <= 0 || b.pos.x + b.diag.x >= windowWidth - 1) {
-            vel.x *= -1;
+        for(Vector point: points) {
+            SDL_RenderDrawPoint(renderer, point.x, point.y);
         }
-        if(b.pos.y <= 0 || b.pos.y + b.diag.y >= windowHeight - 1) {
-            vel.y *= -1;
+        if(showTree) {
+            tree.drawTree(renderer);
+        }
+        
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        vector<Vector> closePoints = tree.getClosePoints(mousePos, 25);
+        for(Vector point: closePoints) {
+            SDL_RenderDrawPoint(renderer, point.x, point.y);
         }
 
         SDL_RenderPresent(renderer);
-
-        if(b.containsPoint(mousePos)) {
-            running = false;
-        }
 
         frameTime = SDL_GetTicks() - frameStart;
         if(frameTime < frameDelay) {
