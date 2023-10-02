@@ -13,3 +13,6 @@ class Box {
         bool overlaps(Box b);
         void draw(SDL_Renderer *renderer);
 };
+
+double max(double a, double b);
+double min(double a, double b);

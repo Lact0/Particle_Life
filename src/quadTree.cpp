@@ -5,13 +5,13 @@ QuadTree::QuadTree(Vector p, Vector d) : Box(p, d) {
     hasPoint = false;
 }
 
-void QuadTree::addPoint(Vector p) {
-    if(!containsPoint(p)) {
+void QuadTree::addPoint(Particle p) {
+    if(!containsPoint(p.pos)) {
         return;
     }
 
     if(isLeaf && hasPoint) {
-        if(point.x == p.x && point.y == p.y) {
+        if(point.pos.x == p.pos.x && point.pos.y == p.pos.y) {
             return;
         }
         isLeaf = false;
@@ -38,8 +38,8 @@ void QuadTree::drawTree(SDL_Renderer *renderer) {
     }
 }
 
-vector<Vector> QuadTree::getClosePoints(Vector p, double r) {
-    Box b(Vector(p.x - r, p.y - r), Vector(r * 2, r * 2));
+vector<Particle> QuadTree::getClosePoints(Particle p, double r) {
+    Box b(Vector(p.pos.x - r, p.pos.y - r), Vector(r * 2, r * 2));
     return getClosePoints(p, b);
 }
 
@@ -55,16 +55,16 @@ void QuadTree::split() {
     }
 }
 
-vector<Vector> QuadTree::getClosePoints(Vector p, Box b) {
-    vector<Vector> points;
-    if(isLeaf && hasPoint && b.containsPoint(point)) {
+vector<Particle> QuadTree::getClosePoints(Particle p, Box b) {
+    vector<Particle> points;
+    if(isLeaf && hasPoint && b.containsPoint(point.pos)) {
         points.push_back(point);
     } if(!isLeaf) {
         for(QuadTree* child: children) {
             if(!b.overlaps(*child)) {
                 continue;
             }
-            vector<Vector> childPoints = child->getClosePoints(p, b);
+            vector<Particle> childPoints = child->getClosePoints(p, b);
             points.insert( points.end(), childPoints.begin(), childPoints.end());
         }
     }

@@ -1,6 +1,7 @@
 #pragma once
 #include "vectorMath.h"
 #include "box.h"
+#include "particle.h"
 #include <vector>
 
 using namespace std;
@@ -9,17 +10,17 @@ class QuadTree : public Box {
     public:
         bool isLeaf;
         bool hasPoint;
-        Vector point;
+        Particle point;
         QuadTree* children[4];
 
         QuadTree(Vector p, Vector d);
 
-        void addPoint(Vector p);
+        void addPoint(Particle p);
         void drawTree(SDL_Renderer *renderer);
-        vector<Vector> getClosePoints(Vector p, double r);
+        vector<Particle> getClosePoints(Particle p, double r);
     
     private:
         void split();
-        vector<Vector> getClosePoints(Vector p, Box b);
+        vector<Particle> getClosePoints(Particle p, Box b);
 
 };
