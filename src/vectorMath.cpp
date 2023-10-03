@@ -32,6 +32,9 @@ Vector Vector::div(double n) {
     return Vector(x / n, y / n);
 }
 Vector Vector::norm() {
+    if(mag == 0) {
+        return Vector();
+    }
     return Vector(x / mag, y / mag);
 }
 

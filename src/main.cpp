@@ -41,8 +41,8 @@ void quit() {
 }
 
 double tooClose = 2;
-double maxDist = 20;
-double closeStrength = 10;
+double maxDist = 30;
+double closeStrength = 20;
 
 Vector getForce(Vector gap, double strength) {
     Vector force;
@@ -67,16 +67,19 @@ int main(int argv, char** args) {
     SDL_Event e;
     bool running = true;
     int frameStart, frameTime;
-    int numColors = 4;
-    double forces[numColors][numColors]; /*= {{2, 1, 0, 0},
-                                           {0, 2, 1, 0},
-                                           {0, 0, 2, 1},
-                                           {1, 0, 0, 2}};
+    int numColors = 6;
+    double forces[numColors][numColors];/* = {{3, 0, 0, 0, 0, 0},
+                                           {2, 3, 0, 0, 0, 0},
+                                           {0, 0, 3, 0, 0, 0},
+                                           {0, 0, 2, 3, 0, 0},
+                                           {0, 0, 0, 0, 3, 0},
+                                           {0, 0, 0, 0, 2, 3}};
     */
 
     for(int i = 0; i < numColors; i++) {
         for(int j = 0; j < numColors; j++) {
-            forces[i][j] = (((double) rand() / (RAND_MAX)) - .5) * 4;
+            forces[i][j] = (((double) rand() / (RAND_MAX)) - .5) * 6;
+            cout << i << " to " << j << ": " << forces[i][j] << "\n";
         }
     }
 
@@ -88,8 +91,17 @@ int main(int argv, char** args) {
         particles.push_back(new Particle(Vector(rand() % windowWidth, rand() % windowHeight), i % numColors));
     }
 
+    int ticks = 0;
+    int newColor = 0;
+
     while(running) {
         frameStart = SDL_GetTicks();
+
+        if(ticks == 60) {
+            ticks = 0;
+            particles.push_back(new Particle(Vector(windowWidth / 2, windowHeight / 2), newColor));
+            newColor = (newColor + 1) % numColors;
+        }
 
         int x, y;
         SDL_GetMouseState(&x, &y);
@@ -102,12 +114,19 @@ int main(int argv, char** args) {
                     running = false;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    particles.push_back(new Particle(mousePos, 0));
+                    particles.push_back(new Particle(mousePos, newColor));
+                    newColor = (newColor + 1) % numColors;
                     break;
                 case SDL_KEYDOWN:
                     switch(e.key.keysym.sym) {
                         case SDLK_SPACE:
                             showTree = !showTree;
+                            break;
+                        case SDLK_n:
+                            particles.clear();
+                            for(int i = 0; i < 1000; i++) {
+                                particles.push_back(new Particle(Vector(rand() % windowWidth, rand() % windowHeight), i % numColors));
+                            }
                             break;
                     }
                     break;
@@ -135,9 +154,6 @@ int main(int argv, char** args) {
         for(Particle* p: particles) {
             vector<Particle> closeParticles = tree.getClosePoints(*p, maxDist);
             for(Particle np: closeParticles) {
-                if((np.pos.x == p->pos.x) && (np.pos.y == p->pos.y)) {
-                    continue;
-                }
                 Vector dir = np.pos.sub(p->pos);
                 Vector force = getForce(dir, forces[p->color][np.color]);
                 p->applyForce(force);
@@ -149,10 +165,10 @@ int main(int argv, char** args) {
             p->pos.x = min(max(0, p->pos.x), windowWidth - 1);
             p->pos.y = min(max(0, p->pos.y), windowHeight - 1);
             if(p->pos.x == 0 || p->pos.x == windowWidth - 1) {
-                p->vel.x = 0;
+                p->vel.x *= -.5;
             }
             if(p->pos.y == 0 || p->pos.y == windowHeight - 1) {
-                p->vel.y = 0;
+                p->vel.y *= -.5;
             }
         }
 
@@ -163,7 +179,7 @@ int main(int argv, char** args) {
         if(frameTime < frameDelay) {
             SDL_Delay(frameDelay - frameTime);
         }
-
+        ticks++;
     }
 
     quit();
