@@ -5,6 +5,7 @@
 #include "particle.h"
 #include <cmath>
 #include <cstdlib>
+#include <thread>
 
 using namespace std;
 
@@ -19,6 +20,8 @@ const int windowHeight = 250;
 const double windowScale = 2;
 
 int colors[6][3] = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}, {255, 255, 0}, {255, 0, 255}, {0, 255, 255}};
+
+double forces[6][6];
 
 bool startup() {
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -57,6 +60,19 @@ Vector getForce(Vector gap, double strength) {
     return force;
 }
 
+void workerComputeForces(QuadTree* tree, vector<Particle*>* partPtr, int startInd, int jump) {
+    vector<Particle*> particles = *partPtr;
+    for(int i = startInd; i < particles.size(); i += jump) {
+        Particle* p = particles[i];
+        vector<Particle> closeParticles = tree->getClosePoints(*p, maxDist);
+        for(Particle np: closeParticles) {
+            Vector dir = np.pos.sub(p->pos);
+            Vector force = getForce(dir, forces[p->color][np.color]);
+            p->applyForce(force);
+        }
+    }
+}
+
 int main(int argv, char** args) {
     if(!startup()) {
         return 1;
@@ -68,7 +84,7 @@ int main(int argv, char** args) {
     bool running = true;
     int frameStart, frameTime;
     int numColors = 6;
-    double forces[numColors][numColors];/* = {{3, 0, 0, 0, 0, 0},
+    /*forces = {{3, 0, 0, 0, 0, 0},
                                            {2, 3, 0, 0, 0, 0},
                                            {0, 0, 3, 0, 0, 0},
                                            {0, 0, 2, 3, 0, 0},
@@ -82,6 +98,7 @@ int main(int argv, char** args) {
             cout << i << " to " << j << ": " << forces[i][j] << "\n";
         }
     }
+    cout << thread::hardware_concurrency();
 
     bool showTree = false;
 
@@ -151,14 +168,20 @@ int main(int argv, char** args) {
             tree.drawTree(renderer);
         }
 
-        for(Particle* p: particles) {
-            vector<Particle> closeParticles = tree.getClosePoints(*p, maxDist);
-            for(Particle np: closeParticles) {
-                Vector dir = np.pos.sub(p->pos);
-                Vector force = getForce(dir, forces[p->color][np.color]);
-                p->applyForce(force);
-            }
+        //START OF PHYSICS UPDATE
+        
+        //DO THREAD STUFF HERE
+
+        int numThreads = thread::hardware_concurrency();
+        thread threads[numThreads];
+        for(int i = 0; i < numThreads; i++) {
+            threads[i] = thread(workerComputeForces, &tree, &particles, i, numThreads);
         }
+        for(int i = 0; i < numThreads; i++) {
+            threads[i].join();
+        }
+
+        //
         for(Particle* p: particles) {
             double dt = .1;
             p->step(dt);
@@ -171,6 +194,8 @@ int main(int argv, char** args) {
                 p->vel.y *= -.5;
             }
         }
+
+        //END OF PHYSICS UPDATE
 
 
         SDL_RenderPresent(renderer);
