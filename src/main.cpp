@@ -43,9 +43,9 @@ void quit() {
     SDL_Quit();
 }
 
-double tooClose = 2;
+double tooClose = 3;
 double maxDist = 30;
-double closeStrength = 20;
+double closeStrength = 20; // 20
 
 Vector getForce(Vector gap, double strength) {
     Vector force;
@@ -73,6 +73,15 @@ void workerComputeForces(QuadTree* tree, vector<Particle*>* partPtr, int startIn
     }
 }
 
+void rollForces() {
+    for(int i = 0; i < 6; i++) {
+        for(int j = 0; j < 6; j++) {
+            forces[i][j] = (((double) rand() / (RAND_MAX)) - .5) * 6;
+            cout << i << " to " << j << ": " << forces[i][j] << "\n";
+        }
+    }
+}
+
 int main(int argv, char** args) {
     if(!startup()) {
         return 1;
@@ -92,12 +101,7 @@ int main(int argv, char** args) {
                                            {0, 0, 0, 0, 2, 3}};
     */
 
-    for(int i = 0; i < numColors; i++) {
-        for(int j = 0; j < numColors; j++) {
-            forces[i][j] = (((double) rand() / (RAND_MAX)) - .5) * 6;
-            cout << i << " to " << j << ": " << forces[i][j] << "\n";
-        }
-    }
+    rollForces();
     cout << thread::hardware_concurrency();
 
     bool showTree = false;
@@ -145,6 +149,9 @@ int main(int argv, char** args) {
                                 particles.push_back(new Particle(Vector(rand() % windowWidth, rand() % windowHeight), i % numColors));
                             }
                             break;
+                        case SDLK_r:
+                            rollForces();
+                            break;
                     }
                     break;
             }
@@ -169,9 +176,6 @@ int main(int argv, char** args) {
         }
 
         //START OF PHYSICS UPDATE
-        
-        //DO THREAD STUFF HERE
-
         int numThreads = thread::hardware_concurrency();
         thread threads[numThreads];
         for(int i = 0; i < numThreads; i++) {
@@ -184,15 +188,15 @@ int main(int argv, char** args) {
         //
         for(Particle* p: particles) {
             double dt = .1;
+            if(p->pos.x <= 0 || p->pos.x >= windowWidth - 1) {
+                p->vel.x *= -.5;
+            }
+            if(p->pos.y <= 0 || p->pos.y >= windowHeight - 1) {
+                p->vel.y *= -.5;
+            }
             p->step(dt);
             p->pos.x = min(max(0, p->pos.x), windowWidth - 1);
             p->pos.y = min(max(0, p->pos.y), windowHeight - 1);
-            if(p->pos.x == 0 || p->pos.x == windowWidth - 1) {
-                p->vel.x *= -.5;
-            }
-            if(p->pos.y == 0 || p->pos.y == windowHeight - 1) {
-                p->vel.y *= -.5;
-            }
         }
 
         //END OF PHYSICS UPDATE
