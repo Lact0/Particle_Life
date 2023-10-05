@@ -175,7 +175,7 @@ int main(int argv, char** args) {
             tree.drawTree(renderer);
         }
 
-        //START OF PHYSICS UPDATE
+        //START OF PHYSICS UPDATE\
         int numThreads = thread::hardware_concurrency();
         thread threads[numThreads];
         for(int i = 0; i < numThreads; i++) {
