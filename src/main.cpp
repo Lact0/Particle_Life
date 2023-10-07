@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include <cstdlib>
+#include "growth.h"
 
 using namespace std;
 
@@ -11,8 +12,8 @@ SDL_Renderer *renderer = nullptr;
 const int targetFPS = 60;
 const int frameDelay = 1000 / targetFPS;
 
-const int windowWidth = 500;
-const int windowHeight = 250;
+const int windowWidth = 400;
+const int windowHeight = 400;
 const double windowScale = 2;
 
 bool startup() {
@@ -48,6 +49,8 @@ int main(int argv, char** args) {
 
     double grid[windowWidth][windowHeight];
 
+    ExpGF g(.25, .03);
+
     while(running) {
         frameStart = SDL_GetTicks();
 
@@ -72,6 +75,7 @@ int main(int argv, char** args) {
         SDL_RenderClear(renderer);
 
         //Update
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 
         SDL_RenderPresent(renderer);
