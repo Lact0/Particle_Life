@@ -14,15 +14,15 @@ class ExpK : public Kernal {
         double alpha;
         vector<double> peaks;
 
-        vector<vector<double>> kernal;
-
         ExpK(int w, int h, double a, vector<double> p);
 
         vector<double> convolve(vector<double> grid);
+        double getKernalPoint(int x, int y, int i, int j);
         double shell(double dist);
     
     private:
         double mag;
+        vector<double> kernal;
 
         void genKernal();
         

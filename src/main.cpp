@@ -90,7 +90,7 @@ int main(int argv, char** args) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for(int i = 0; i < windowWidth; i++) {
             for(int j = 0; j < windowHeight; j++) {
-                double col = 255 * k.kernal[x * windowWidth + y][i * windowHeight + j] * 1000;
+                double col = 255 * k.getKernalPoint(x, y, i, j) * 1000;
                 SDL_SetRenderDrawColor(renderer, col, col, col, 255);
                 SDL_RenderDrawPoint(renderer, i, j);
             }
