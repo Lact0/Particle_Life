@@ -1,8 +1,9 @@
 #include <iostream>
 #include <SDL2/SDL.h>
-#include <vector>
 #include <cstdlib>
 #include "growth.h"
+#include "kernal.h"
+#include <cmath>
 
 using namespace std;
 
@@ -12,9 +13,9 @@ SDL_Renderer *renderer = nullptr;
 const int targetFPS = 60;
 const int frameDelay = 1000 / targetFPS;
 
-const int windowWidth = 400;
-const int windowHeight = 400;
-const double windowScale = 2;
+const int windowWidth = 200;
+const int windowHeight = 200;
+const double windowScale = 4;
 
 bool startup() {
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -37,6 +38,11 @@ void quit() {
 }
 
 int main(int argv, char** args) {
+
+    ExpK k(windowWidth, windowHeight, 4, vector<double>({1}));
+
+    cout << "Finished making the kernal!!";
+
     if(!startup()) {
         return 1;
     }
@@ -47,12 +53,17 @@ int main(int argv, char** args) {
     bool running = true;
     int frameStart, frameTime;
 
-    double grid[windowWidth][windowHeight];
+    vector<vector<double>> grid;
 
     ExpGF g(.25, .03);
-
+    
     while(running) {
         frameStart = SDL_GetTicks();
+
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+        x /= windowScale;
+        y /= windowScale;
 
         while(SDL_PollEvent(&e) != 0) {
             switch(e.type) {
@@ -76,10 +87,16 @@ int main(int argv, char** args) {
 
         //Update
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
+        for(int i = 0; i < windowWidth; i++) {
+            for(int j = 0; j < windowHeight; j++) {
+                double col = 255 * k.kernal[x * windowWidth + y][i * windowHeight + j] * 1000;
+                SDL_SetRenderDrawColor(renderer, col, col, col, 255);
+                SDL_RenderDrawPoint(renderer, i, j);
+            }
+        }
 
         SDL_RenderPresent(renderer);
-
+        
         frameTime = SDL_GetTicks() - frameStart;
         if(frameTime < frameDelay) {
             SDL_Delay(frameDelay - frameTime);
