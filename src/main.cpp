@@ -38,7 +38,7 @@ void quit() {
 
 int main(int argv, char** args) {
 
-    ExpK k(windowWidth, windowHeight, 4, vector<double>({1}));
+    ExpK k(windowWidth, windowHeight, 4, 50, vector<double>({1}));
 
     cout << "Finished making the kernal!!";
 

@@ -12,9 +12,10 @@ class ExpK : public Kernal {
         int width;
         int height;
         double alpha;
+        double radius;
         vector<double> peaks;
 
-        ExpK(int w, int h, double a, vector<double> p);
+        ExpK(int w, int h, double a, double r, vector<double> p);
 
         vector<double> convolve(vector<double> grid);
         double getKernalPoint(int x, int y, int i, int j);

@@ -2,10 +2,11 @@
 #include <cmath>
 #include <iostream>
 
-ExpK::ExpK(int w, int h, double a, vector<double> p) {
+ExpK::ExpK(int w, int h, double a, double r, vector<double> p) {
     width = w;
     height = h;
     alpha = a;
+    radius = r;
     peaks = p;
     kernal = vector<double>(width * height, 0);
     genKernal();
@@ -21,8 +22,12 @@ void ExpK::genKernal() {
         for(int j = 0; j < width; j++) {
             double xChange = std::min(i, width - i);
             double yChange = std::min(j, height - j);
-            double dist = sqrt(pow(xChange, 2) + pow(yChange, 2));
-            double val = peaks[floor(dist * peaks.size())] * shell(fmod(dist * peaks.size(), 1));
+            double dist = sqrt(pow(xChange, 2) + pow(yChange, 2)) / radius;
+            if(dist > 1) {
+                continue;
+            }
+            double br = peaks.size() * dist;
+            double val = peaks[floor(br)] * shell(fmod(br, 1));
             kernal[i * width + j] = val;
             mag += val;
         }
