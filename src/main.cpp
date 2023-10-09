@@ -8,14 +8,14 @@
 using namespace std;
 
 SDL_Window *window = nullptr;
-SDL_Renderer *renderer = nullptr;
+SDL_Surface *screen = nullptr;
 
 const int targetFPS = 60;
 const int frameDelay = 1000 / targetFPS;
 
-const int windowWidth = 200;
-const int windowHeight = 200;
-const double windowScale = 4;
+const int windowWidth = 800;
+const int windowHeight = 800;
+const double windowScale = 1;
 
 bool startup() {
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -25,14 +25,13 @@ bool startup() {
     window = SDL_CreateWindow("Test", 
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
             windowWidth * windowScale, windowHeight * windowScale, SDL_WINDOW_SHOWN);
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_RenderSetScale(renderer, windowScale, windowScale);
+    screen = SDL_GetWindowSurface(window);
 
     return true;
 }
 
 void quit() {
-    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindowSurface(window);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
@@ -60,10 +59,10 @@ int main(int argv, char** args) {
     while(running) {
         frameStart = SDL_GetTicks();
 
+        SDL_LockSurface(screen);
+
         int x, y;
         SDL_GetMouseState(&x, &y);
-        x /= windowScale;
-        y /= windowScale;
 
         while(SDL_PollEvent(&e) != 0) {
             switch(e.type) {
@@ -81,22 +80,22 @@ int main(int argv, char** args) {
                     break;
             }
         }
-        
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
 
+        uint8_t* pixels = (uint8_t*) screen->pixels;
 
         //Update
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for(int i = 0; i < windowWidth; i++) {
             for(int j = 0; j < windowHeight; j++) {
-                double col = 255 * k.getKernalPoint(x, y, i, j) * 1000;
-                SDL_SetRenderDrawColor(renderer, col, col, col, 255);
-                SDL_RenderDrawPoint(renderer, i, j);
+                uint8_t col = (uint8_t) (255 * k.getKernalPoint(x, y, i, j) * 1000);
+                int ind = j * screen->pitch + i * screen->format->BytesPerPixel;
+                pixels[ind] = col;
+                pixels[ind + 1] = col;
+                pixels[ind + 2] = col;
             }
         }
 
-        SDL_RenderPresent(renderer);
+        SDL_UnlockSurface(screen);
+        SDL_UpdateWindowSurface(window);
         
         frameTime = SDL_GetTicks() - frameStart;
         if(frameTime < frameDelay) {
